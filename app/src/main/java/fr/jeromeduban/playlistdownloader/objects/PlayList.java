@@ -1,4 +1,4 @@
-package fr.jeromeduban.playlistdownloader;
+package fr.jeromeduban.playlistdownloader.objects;
 
 import java.util.List;
 
