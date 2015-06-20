@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity {
     private static final String TAG = "MainActivity";
 
     private String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
-    private String playList = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
+    private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
     private OkHttpClient client;
 
     @Override
@@ -32,27 +32,20 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         client = new OkHttpClient();
-        run(generateUrl(playList,50));
-
-
+        getPlaylistItems(generateUrl(playlistID, 50));
 
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -64,10 +57,13 @@ public class MainActivity extends ActionBarActivity {
         return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults="+Integer.toString(maxResults)+"&playlistId="+playlistID+"&key="+KEY;
     }
 
-    private void run(String url){
+    private void getPlaylistItems(String url){
         Request request = new Request.Builder()
                 .url(url)
                 .build();
+
+        //TODO Add multiple API calls if there is more than 50 songs in the playlist
+        // Try with : https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=18&playlistId=PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP&key=AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc
 
         client.newCall(request).enqueue(new Callback() {
 
@@ -77,7 +73,11 @@ public class MainActivity extends ActionBarActivity {
             }
 
             @Override public void onResponse(Response response) throws IOException {
-                if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+                if (!response.isSuccessful())
+                    if (response.code() == 404)
+                        Log.d(TAG,"Error 404");
+                    else
+                        throw new IOException("Unexpected code " + response);
 
                 PlayList pl = parse(response.body().string());
 
@@ -88,10 +88,14 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
+    /**
+     * Parse Json from Youtube API
+     * @param json json from youtube API
+     * @return Playlist as an object
+     */
     private PlayList parse(String json){
         Moshi moshi = new Moshi.Builder().build();
         JsonAdapter<PlayList> jsonAdapter = moshi.adapter(PlayList.class);
-
         try {
             return jsonAdapter.fromJson(json);
         } catch (IOException e) {

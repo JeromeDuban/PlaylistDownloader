@@ -10,12 +10,15 @@ public final class PlayList {
 
     public final String kind;
     public final String etag;
+    public final String nextPageToken;
     public final PageInfo pageInfo;
     public final List<Items> items;
 
-    public PlayList(String kind, String etag, PageInfo pageInfo, List<Items> items) {
+
+    public PlayList(String kind, String etag, String nextPageToken, PageInfo pageInfo, List<Items> items) {
         this.kind = kind;
         this.etag = etag;
+        this.nextPageToken = nextPageToken;
         this.pageInfo = pageInfo;
         this.items = items;
     }
@@ -25,6 +28,7 @@ public final class PlayList {
         return "PlayList{" +
                 "kind='" + kind + '\'' +
                 ", etag='" + etag + '\'' +
+                ", nextPageToken='" + nextPageToken + '\'' +
                 ", pageInfo=" + pageInfo +
                 ", items=" + items +
                 '}';

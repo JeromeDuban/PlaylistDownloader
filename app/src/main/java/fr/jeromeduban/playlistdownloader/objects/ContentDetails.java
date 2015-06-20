@@ -1,4 +1,4 @@
-package fr.jeromeduban.playlistdownloader;
+package fr.jeromeduban.playlistdownloader.objects;
 
 /**
  * Created by jduban on 18/06/2015.

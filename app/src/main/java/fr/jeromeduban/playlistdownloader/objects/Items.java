@@ -1,7 +1,5 @@
 package fr.jeromeduban.playlistdownloader.objects;
 
-import fr.jeromeduban.playlistdownloader.ContentDetails;
-
 /**
  * Created by jduban on 18/06/2015.
  */
