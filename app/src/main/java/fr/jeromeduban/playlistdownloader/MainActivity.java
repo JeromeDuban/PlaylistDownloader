@@ -34,6 +34,14 @@ public class MainActivity extends ActionBarActivity {
         client = new OkHttpClient();
         getPlaylistItems(generateUrl(playlistID, 50));
 
+        String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
+
+        String id = test.split("list=")[1].split("&")[0];
+        if (id.length() != 34){
+            Log.d(TAG,"id might be wrong");
+        }
+        Log.d(TAG,id);
+
     }
 
     @Override
@@ -81,8 +89,10 @@ public class MainActivity extends ActionBarActivity {
 
                 PlayList pl = parse(response.body().string());
 
-                assert pl != null;
-                Log.d(TAG,pl.toString());
+                if (pl != null)
+                    Log.d(TAG,pl.toString());
+                else
+                    Log.d(TAG,"PL null");
 
             }
         });
