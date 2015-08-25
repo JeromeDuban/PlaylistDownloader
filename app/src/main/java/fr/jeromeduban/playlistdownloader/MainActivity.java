@@ -1,6 +1,8 @@
 package fr.jeromeduban.playlistdownloader;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -53,8 +55,10 @@ public class MainActivity extends ActionBarActivity {
                 Log.d(TAG, id);
             }
         });
+    }
 
-
+    private void playlistCallback(ArrayList<PlayList> list){
+        button.setText("prout");
     }
 
     private String generateUrl(String playlistID, int maxResults){
@@ -73,6 +77,8 @@ public class MainActivity extends ActionBarActivity {
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
+
+            Handler mainHandler = new Handler(Looper.getMainLooper());
             
             @Override
             public void onFailure(Request request, IOException e) {
@@ -90,27 +96,27 @@ public class MainActivity extends ActionBarActivity {
                 PlayList pl = parse(response.body().string());
 
                 if (pl != null){
-//                    Log.d(TAG, pl.toString());
+
                     list.add(pl);
-                    System.out.println("Length : "+ list.size());
 
                     if (pl.nextPageToken != null){ // If there are another page
-                        System.out.println(Integer.toString(pl.pageInfo.totalResults) + " NOT NULL");
                         getPlaylistItems(generateUrl(playlistID, maxResults ,pl.nextPageToken), list);
                     }
                     else{
-                        System.out.println(Integer.toString(pl.pageInfo.totalResults) + " NULL");
-                        // TODO call merge + treatment
-                        System.out.println(list);
-                    }
+                        // Display elements on UI thread
+                        mainHandler.post(new Runnable() {
 
+                            @Override
+                            public void run() {
+                                playlistCallback(list);
+                            }
+                        });
+                    }
                 }
                 else
                     Log.d(TAG, "PL null");
             }
         });
-
-
 
     }
 
