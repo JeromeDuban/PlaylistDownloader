@@ -12,10 +12,10 @@ public final class PlayList {
     public final String etag;
     public final String nextPageToken;
     public final PageInfo pageInfo;
-    public final List<Items> items;
+    public final List<Item> items;
 
 
-    public PlayList(String kind, String etag, String nextPageToken, PageInfo pageInfo, List<Items> items) {
+    public PlayList(String kind, String etag, String nextPageToken, PageInfo pageInfo, List<Item> items) {
         this.kind = kind;
         this.etag = etag;
         this.nextPageToken = nextPageToken;
