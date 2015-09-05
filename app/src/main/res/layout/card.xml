@@ -16,6 +16,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
             android:contentDescription="Thumbnail"/>
 
         <TextView
@@ -26,6 +27,8 @@
             android:layout_toEndOf="@+id/thumbnail"
             android:gravity="center_vertical"
             android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
             android:textStyle="bold"
             android:text="File Name" />
 
