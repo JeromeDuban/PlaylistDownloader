@@ -12,9 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.okhttp.Callback;
@@ -38,6 +43,7 @@ public class MainActivity extends ActionBarActivity {
     private OkHttpClient client;
     private int maxResults = 6;
     private Button button;
+    private ImageLoaderConfiguration.Builder config;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +73,16 @@ public class MainActivity extends ActionBarActivity {
                 getPlaylistItems(generateUrl(playlistID, maxResults), list);
             }
         });
+
+        config = new ImageLoaderConfiguration.Builder(this);
+        config.threadPriority(Thread.NORM_PRIORITY - 2);
+        config.denyCacheImageMultipleSizesInMemory();
+        config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
+        config.diskCacheSize(50 * 1024 * 1024); // 50 MiB
+        config.tasksProcessingOrder(QueueProcessingType.LIFO);
+        config.writeDebugLogs(); // Remove for release app
+
+        ImageLoader.getInstance().init(config.build());
     }
 
     private void playlistCallback(ArrayList<Playlist> list) {
@@ -99,7 +115,8 @@ public class MainActivity extends ActionBarActivity {
 
                                 @Override
                                 public void run() {
-                                    displayCards(playlist.items.get(0).snippet.title);
+                                    displayCards(playlist.items.get(0).snippet.title,
+                                            playlist.items.get(0).snippet.thumbnails.medium.url );
 
                                 }
                             });
@@ -117,15 +134,19 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    private void displayCards(String title) {
+    private void displayCards(String title, String url) {
 
         LinearLayout container = (LinearLayout) findViewById(R.id.container);
-        
+
+        ImageLoader imageLoader = ImageLoader.getInstance();
         LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View card = in.inflate(R.layout.card, container, false);
 
         TextView tv = (TextView) card.findViewById(R.id.fileName);
         tv.setText(title);
+
+        ImageView iv = (ImageView) card.findViewById(R.id.thumbnail);
+        imageLoader.displayImage(url, iv);
 
         container.addView(card);
     }

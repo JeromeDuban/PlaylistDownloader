@@ -9,15 +9,25 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="10dp">
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:contentDescription="Thumbnail"/>
 
         <TextView
             android:id="@+id/fileName"
             android:layout_width="match_parent"
             android:layout_height="20dp"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:layout_toEndOf="@+id/thumbnail"
             android:gravity="center_vertical"
-            android:text="File Name"/>
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"
+            android:text="File Name" />
 
 
     </RelativeLayout>
