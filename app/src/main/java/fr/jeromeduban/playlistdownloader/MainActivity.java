@@ -1,15 +1,19 @@
 package fr.jeromeduban.playlistdownloader;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
@@ -22,7 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import fr.jeromeduban.playlistdownloader.objects.Item;
-import fr.jeromeduban.playlistdownloader.objects.PlayList;
+import fr.jeromeduban.playlistdownloader.objects.Playlist;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -49,7 +53,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 client = new OkHttpClient();
-                ArrayList<PlayList> list = new ArrayList<>();
+                ArrayList<Playlist> list = new ArrayList<>();
 
                 // TODO to be used : text from a TextView
                 String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
@@ -65,36 +69,65 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
-    private void playlistCallback(ArrayList<PlayList> list) {
+    private void playlistCallback(ArrayList<Playlist> list) {
 
-        for (PlayList playList : list) {
+        for (Playlist playList : list) {
             for (final Item item : playList.items) {
+                final String call = generateUrlVideoID(item.contentDetails.videoId);
 
-                String call = generateUrlVideoID(item.contentDetails.videoId);
+                Request request = new Request.Builder()
+                        .url(call)
+                        .build();
+
+                client.newCall(request).enqueue(new Callback() {
+
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+
+
+                    @Override
+                    public void onFailure(Request request, IOException e) {
+
+                    }
+
+                    @Override
+                    public void onResponse(Response response) throws IOException {
+
+                        final Playlist playlist = parsePlaylist(response.body().string());
+
+                        if (playlist != null){
+                            mainHandler.post(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    displayCards(playlist.items.get(0).snippet.title);
+
+                                }
+                            });
+                        }
+                    }
+                });
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }
 
+    }
 
-        // TODO : needs to be done later
-//        LinearLayout container = (LinearLayout) findViewById(R.id.container);
-//
-//        for (PlayList pl : list){
-//            for (Item item : pl.items){
-//                LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//                View card = in.inflate(R.layout.card,container, false);
-//
-//                TextView title = (TextView) card.findViewById(R.id.fileName);
-//                title.setText(String.valueOf(item.contentDetails.videoId));
-//
-//                container.addView(card);
-//            }
-//        }
+    private void displayCards(String title) {
+
+        LinearLayout container = (LinearLayout) findViewById(R.id.container);
+        
+        LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View card = in.inflate(R.layout.card, container, false);
+
+        TextView tv = (TextView) card.findViewById(R.id.fileName);
+        tv.setText(title);
+
+        container.addView(card);
     }
 
     private String generateUrl(String playlistID, int maxResults) {
@@ -115,7 +148,7 @@ public class MainActivity extends ActionBarActivity {
      * @param url  URL of the API call
      * @param list Will be filled with the API response
      */
-    private void getPlaylistItems(String url, final ArrayList<PlayList> list) {
+    private void getPlaylistItems(String url, final ArrayList<Playlist> list) {
 
         System.out.println("URL : " + url);
 
@@ -124,8 +157,6 @@ public class MainActivity extends ActionBarActivity {
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
-
-            Handler mainHandler = new Handler(Looper.getMainLooper());
 
             @Override
             public void onFailure(Request request, IOException e) {
@@ -140,7 +171,7 @@ public class MainActivity extends ActionBarActivity {
                     else
                         throw new IOException("Unexpected code " + response);
 
-                PlayList pl = parse(response.body().string());
+                Playlist pl = parsePlaylist(response.body().string());
 
                 if (pl != null) {
 
@@ -149,15 +180,6 @@ public class MainActivity extends ActionBarActivity {
                     if (pl.nextPageToken != null) { // If there are another page
                         getPlaylistItems(generateUrl(playlistID, maxResults, pl.nextPageToken), list);
                     } else {
-                        // Display elements on UI thread // TODO : wil be used later
-//                        mainHandler.post(new Runnable() {
-//
-//                            @Override
-//                            public void run() {
-//
-//                            }
-//                        });
-
                         playlistCallback(list);
                     }
                 } else
@@ -173,9 +195,9 @@ public class MainActivity extends ActionBarActivity {
      * @param json json from youtube API
      * @return Playlist as an object
      */
-    private PlayList parse(String json) {
+    private Playlist parsePlaylist(String json) {
         Moshi moshi = new Moshi.Builder().build();
-        JsonAdapter<PlayList> jsonAdapter = moshi.adapter(PlayList.class);
+        JsonAdapter<Playlist> jsonAdapter = moshi.adapter(Playlist.class);
         try {
             return jsonAdapter.fromJson(json);
         } catch (IOException e) {

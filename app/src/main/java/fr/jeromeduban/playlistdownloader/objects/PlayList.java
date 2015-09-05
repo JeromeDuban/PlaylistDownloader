@@ -6,7 +6,7 @@ import java.util.List;
  * Created by jduban on 18/06/2015.
  */
 
-public final class PlayList {
+public final class Playlist {
 
     public final String kind;
     public final String etag;
@@ -15,7 +15,7 @@ public final class PlayList {
     public final List<Item> items;
 
 
-    public PlayList(String kind, String etag, String nextPageToken, PageInfo pageInfo, List<Item> items) {
+    public Playlist(String kind, String etag, String nextPageToken, PageInfo pageInfo, List<Item> items) {
         this.kind = kind;
         this.etag = etag;
         this.nextPageToken = nextPageToken;
@@ -25,7 +25,7 @@ public final class PlayList {
 
     @Override
     public String toString() {
-        return "PlayList{" +
+        return "Playlist{" +
                 "kind='" + kind + '\'' +
                 ", etag='" + etag + '\'' +
                 ", nextPageToken='" + nextPageToken + '\'' +
