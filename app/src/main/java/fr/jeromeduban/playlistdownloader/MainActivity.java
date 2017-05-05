@@ -20,8 +20,6 @@ import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +35,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static fr.jeromeduban.playlistdownloader.Utils.generateUrl;
+import static fr.jeromeduban.playlistdownloader.Utils.generateUrlVideoID;
+import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
+
 //TODO Download video
 //TODO Extract mp3
 //TODO Guess Artist and song name
@@ -44,10 +46,12 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
+    protected static String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
+    protected static int maxResults = 6;
+
     private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
     private OkHttpClient client;
-    private int maxResults = 6;
+
     private Activity a;
 
     @BindView(R.id.button)
@@ -222,36 +226,6 @@ public class MainActivity extends AppCompatActivity {
         imageLoader.displayImage(url, iv);
 
         container.addView(card);
-    }
-
-    private String generateUrl(String playlistID) {
-        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(maxResults) + "&playlistId=" + playlistID + "&key=" + KEY;
-    }
-
-    private String generateUrl(String playlistID, String nextPageToken) {
-        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(maxResults) + "&playlistId=" + playlistID + "&key=" + KEY + "&pageToken=" + nextPageToken;
-    }
-
-    private String generateUrlVideoID(String videoID) {
-        return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + KEY;
-    }
-
-
-    /**
-     * Parse Json from Youtube API
-     *
-     * @param json json from youtube API
-     * @return Playlist as an object
-     */
-    private Playlist parsePlaylist(String json) {
-        Moshi moshi = new Moshi.Builder().build();
-        JsonAdapter<Playlist> jsonAdapter = moshi.adapter(Playlist.class);
-        try {
-            return jsonAdapter.fromJson(json);
-        } catch (IOException e) {
-            LogHelper.e(e.getMessage(), e);
-        }
-        return null;
     }
 
     @Override
