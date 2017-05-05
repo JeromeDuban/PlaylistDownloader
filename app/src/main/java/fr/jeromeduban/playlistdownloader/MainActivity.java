@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
@@ -218,12 +219,26 @@ public class MainActivity extends AppCompatActivity {
         ImageLoader imageLoader = ImageLoader.getInstance();
         LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View card = in.inflate(R.layout.card, container, false);
+        card.setTag(item);
 
         TextView tv = (TextView) card.findViewById(R.id.fileName);
         tv.setText(title);
 
         ImageView iv = (ImageView) card.findViewById(R.id.thumbnail);
         imageLoader.displayImage(url, iv);
+
+        ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
+        pb.setVisibility(View.GONE);
+
+        card.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
+                Item item = (Item)v.getTag();
+                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id);
+                return false;
+            }
+        });
 
         container.addView(card);
     }
