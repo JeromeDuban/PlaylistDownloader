@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +25,9 @@ import com.squareup.moshi.Moshi;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import fr.jeromeduban.playlistdownloader.objects.Item;
 import fr.jeromeduban.playlistdownloader.objects.Playlist;
 import okhttp3.Call;
@@ -43,37 +45,20 @@ public class MainActivity extends AppCompatActivity {
     private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
     private OkHttpClient client;
     private int maxResults = 6;
-    private Button button;
+
     private ImageLoaderConfiguration.Builder config;
+
+    @BindView(R.id.button)
+    Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         // Wakelock
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-
-        button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                client = new OkHttpClient();
-                ArrayList<Playlist> list = new ArrayList<>();
-
-                // TODO to be used : text from a TextView
-                String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
-                String id = test.split("list=")[1].split("&")[0];
-                if (id.length() != 34) {
-                    Log.d(TAG, "id might be wrong");
-                }
-                Log.d(TAG, id);
-
-
-                getPlaylistItems(generateUrl(playlistID, maxResults), list);
-            }
-        });
 
         config = new ImageLoaderConfiguration.Builder(this);
         config.threadPriority(Thread.NORM_PRIORITY - 2);
@@ -84,6 +69,24 @@ public class MainActivity extends AppCompatActivity {
         config.writeDebugLogs(); // Remove for release app
 
         ImageLoader.getInstance().init(config.build());
+    }
+
+    @OnClick(R.id.button)
+    public void getPlaylist(){
+        client = new OkHttpClient();
+        ArrayList<Playlist> list = new ArrayList<>();
+
+        // TODO to be used : text from a TextView
+        String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
+        String id = test.split("list=")[1].split("&")[0];
+        if (id.length() != 34) {
+            LogHelper.d("id might be wrong");
+        }
+
+        LogHelper.d(id);
+
+
+        getPlaylistItems(generateUrl(playlistID, maxResults), list);
     }
 
     private void playlistCallback(ArrayList<Playlist> list) {
