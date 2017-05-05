@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 @Override
                                 public void run() {
-                                    if (playlist.items.size() > 0) {
+                                    if (playlist.items !=null && playlist.items.size() > 0) {
                                         displayCard(playlist.items.get(0));
                                     }else{
                                         LogHelper.i("Vidéo supprimée");

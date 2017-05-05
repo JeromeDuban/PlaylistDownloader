@@ -10,8 +10,6 @@ import java.io.IOException;
 
 import fr.jeromeduban.playlistdownloader.objects.Playlist;
 
-import static android.provider.Contacts.SettingsColumns.KEY;
-
 /**
  * Created by PJDN05921 on 05/05/2017.
  */
@@ -35,7 +33,7 @@ class Utils {
     }
 
     static String generateUrlVideoID(String videoID) {
-        return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + KEY;
+        return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + MainActivity.KEY;
     }
 
 
