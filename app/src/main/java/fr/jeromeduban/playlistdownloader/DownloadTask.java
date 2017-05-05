@@ -1,11 +1,14 @@
 package fr.jeromeduban.playlistdownloader;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.os.PowerManager;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,11 +23,11 @@ import java.net.URL;
 public class DownloadTask extends AsyncTask<String, Integer, String> {
 
     private Context context;
-    private ProgressDialog mProgressDialog;
+    private ProgressBar mProgressBar;
     private PowerManager.WakeLock mWakeLock;
 
-    public DownloadTask(Context context, ProgressDialog mpd) {
-        this.mProgressDialog = mpd;
+    public DownloadTask(Context context, View view) {
+        this.mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
         this.context = context;
     }
 
@@ -51,7 +54,7 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
 
             // download the file
             input = connection.getInputStream();
-            output = new FileOutputStream("/sdcard/file_name.extension");
+            output = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath() + "/test.mp3"));
 
             byte data[] = new byte[4096];
             long total = 0;
@@ -94,22 +97,22 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 getClass().getName());
         mWakeLock.acquire();
-        mProgressDialog.show();
+        mProgressBar.setVisibility(View.VISIBLE);
     }
 
     @Override
     protected void onProgressUpdate(Integer... progress) {
         super.onProgressUpdate(progress);
         // if we get here, length is known, now set indeterminate to false
-        mProgressDialog.setIndeterminate(false);
-        mProgressDialog.setMax(100);
-        mProgressDialog.setProgress(progress[0]);
+        mProgressBar.setIndeterminate(false);
+        mProgressBar.setMax(100);
+        mProgressBar.setProgress(progress[0]);
     }
 
     @Override
     protected void onPostExecute(String result) {
         mWakeLock.release();
-        mProgressDialog.dismiss();
+        //mProgressBar.dismiss();
         if (result != null)
             Toast.makeText(context,"Download error: "+result, Toast.LENGTH_LONG).show();
         else
