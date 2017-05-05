@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,19 +22,20 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 import fr.jeromeduban.playlistdownloader.objects.Item;
 import fr.jeromeduban.playlistdownloader.objects.Playlist;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
@@ -97,17 +98,13 @@ public class MainActivity extends ActionBarActivity {
 
                 client.newCall(request).enqueue(new Callback() {
 
-                    Handler mainHandler = new Handler(Looper.getMainLooper());
-
-
                     @Override
-                    public void onFailure(Request request, IOException e) {
-
+                    public void onFailure(Call call, IOException e) {
+                        LogHelper.e(e.getMessage(),e);
                     }
 
                     @Override
-                    public void onResponse(Response response) throws IOException {
-
+                    public void onResponse(Call call, Response response) throws IOException {
                         final Playlist playlist = parsePlaylist(response.body().string());
 
                         if (playlist != null){
@@ -115,13 +112,17 @@ public class MainActivity extends ActionBarActivity {
 
                                 @Override
                                 public void run() {
-                                    displayCards(playlist.items.get(0).snippet.title,
-                                            playlist.items.get(0).snippet.thumbnails.medium.url );
-
+                                    if (playlist.items.size() > 0){
+                                        displayCards(playlist.items.get(0).snippet.title,
+                                                playlist.items.get(0).snippet.thumbnails.medium.url );
+                                    }
                                 }
                             });
                         }
                     }
+
+                    Handler mainHandler = new Handler(Looper.getMainLooper());
+
                 });
 
                 try {
@@ -179,18 +180,22 @@ public class MainActivity extends ActionBarActivity {
 
         client.newCall(request).enqueue(new Callback() {
 
+
             @Override
-            public void onFailure(Request request, IOException e) {
-                e.printStackTrace();
+            public void onFailure(Call call, IOException e) {
+                LogHelper.e(e.getMessage(),e);
             }
 
             @Override
-            public void onResponse(Response response) throws IOException {
-                if (!response.isSuccessful())
-                    if (response.code() == 404)
-                        Log.d(TAG, "Error 404");
-                    else
+            public void onResponse(Call call, Response response) throws IOException {
+
+                if (!response.isSuccessful()){
+                    if (response.code() == 404){
+                        LogHelper.d("Error 404");
+                    }else{
                         throw new IOException("Unexpected code " + response);
+                    }
+                }
 
                 Playlist pl = parsePlaylist(response.body().string());
 
@@ -203,8 +208,9 @@ public class MainActivity extends ActionBarActivity {
                     } else {
                         playlistCallback(list);
                     }
-                } else
-                    Log.d(TAG, "PL null");
+                } else{
+                    LogHelper.d("PL null");
+                }
             }
         });
 
