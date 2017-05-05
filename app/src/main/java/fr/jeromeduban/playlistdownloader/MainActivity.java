@@ -1,5 +1,6 @@
 package fr.jeromeduban.playlistdownloader;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,7 +37,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-//TODO Download vidéo
+//TODO Download video
 //TODO Extract mp3
 //TODO Guess Artist and song name
 //TODO Add TextView to chose playlist
@@ -47,11 +48,15 @@ public class MainActivity extends AppCompatActivity {
     private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
     private OkHttpClient client;
     private int maxResults = 6;
-
-    private ImageLoaderConfiguration.Builder config;
+    private Activity a;
 
     @BindView(R.id.button)
     Button button;
+
+    @BindView(R.id.container)
+    LinearLayout container;
+
+    private ArrayList<Playlist> list = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,20 +64,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        a = this;
+        client = new OkHttpClient();
+
         // Wakelock
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); //FIXME
 
         // Initialize ImageLoader
-        config = new ImageLoaderConfiguration.Builder(this);
+        ImageLoaderConfiguration.Builder config = new ImageLoaderConfiguration.Builder(this);
         config.threadPriority(Thread.NORM_PRIORITY - 2);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(50 * 1024 * 1024); // 50 MiB
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
 
-        if (BuildConfig.DEBUG){
-            config.writeDebugLogs();
-        }
+//        if (BuildConfig.DEBUG) {
+//            config.writeDebugLogs();
+//        }
 
         ImageLoader.getInstance().init(config.build());
     }
@@ -81,29 +89,89 @@ public class MainActivity extends AppCompatActivity {
      * Will be called when the user clicks on Start
      */
     @OnClick(R.id.button)
-    public void getPlaylist(){
-        client = new OkHttpClient();
-        ArrayList<Playlist> list = new ArrayList<>();
+    public void getPlaylist() {
 
         // FIXME to be used : text from a TextView
+        // Parse playlist from youtube link
         String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
         String id = test.split("list=")[1].split("&")[0];
         LogHelper.d(id);
-
         if (id.length() != 34) { //TODO Check if id length is always 34
             LogHelper.d("id might be wrong");
         }
 
-        getPlaylistItems(generateUrl(playlistID, maxResults), list);
+        getPlaylistItems(generateUrl(playlistID));
     }
 
+    /**
+     * Get all playlist videos information
+     *
+     * @param url URL of the API call
+     */
+    private void getPlaylistItems(String url) {
+
+        LogHelper.i("Getting videos from : " + url);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+
+
+            @Override
+            public void onFailure(Call call, IOException e) {
+                LogHelper.e(e.getMessage(), e);
+                //TODO Add Retry !!!!!
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                LogHelper.d("Got response from " + call.request().url());
+
+                if (!response.isSuccessful()) {
+                    LogHelper.d(String.valueOf(response.code()));
+                    Utils.ToastOnUIThread(a, "Une erreur réseau est survenue");
+                    if (response.code() == 404) {
+                        LogHelper.d("Error 404");
+                    } else {
+                        throw new IOException("Unexpected code " + response);
+                    }
+                } else {
+                    Playlist pl = parsePlaylist(response.body().string());
+
+                    if (pl != null) {
+
+                        list.add(pl);
+
+                        // If there are another page, get next playlist items
+                        if (pl.nextPageToken != null) {
+                            getPlaylistItems(generateUrl(playlistID, pl.nextPageToken));
+                        } else {
+                            playlistCallback(list);
+                        }
+                    } else {
+                        LogHelper.d("PL null");
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Get videos' data
+     *
+     * @param list
+     */
     private void playlistCallback(ArrayList<Playlist> list) {
+        final Handler mainHandler = new Handler(Looper.getMainLooper());
 
         for (Playlist playList : list) {
             for (final Item item : playList.items) {
                 final String call = generateUrlVideoID(item.contentDetails.videoId);
 
-                Request request = new Request.Builder()
+                final Request request = new Request.Builder()
                         .url(call)
                         .build();
 
@@ -111,44 +179,37 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call call, IOException e) {
-                        LogHelper.e(e.getMessage(),e);
+                        LogHelper.e(e.getMessage(), e);
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
+
                         final Playlist playlist = parsePlaylist(response.body().string());
 
-                        if (playlist != null){
+                        if (playlist != null) {
                             mainHandler.post(new Runnable() {
 
                                 @Override
                                 public void run() {
-                                    if (playlist.items.size() > 0){
-                                        displayCards(playlist.items.get(0).snippet.title,
-                                                playlist.items.get(0).snippet.thumbnails.medium.url );
+                                    if (playlist.items.size() > 0) {
+                                        displayCard(playlist.items.get(0));
+                                    }else{
+                                        LogHelper.i("Vidéo supprimée");
                                     }
                                 }
                             });
                         }
                     }
-
-                    Handler mainHandler = new Handler(Looper.getMainLooper());
-
                 });
-
-//                try {
-//                    Thread.sleep(500);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
             }
         }
-
     }
 
-    private void displayCards(String title, String url) {
+    private void displayCard(Item item) {
 
-        LinearLayout container = (LinearLayout) findViewById(R.id.container);
+        String title = item.snippet.title;
+        String url = item.snippet.thumbnails.medium.url;
 
         ImageLoader imageLoader = ImageLoader.getInstance();
         LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -163,11 +224,11 @@ public class MainActivity extends AppCompatActivity {
         container.addView(card);
     }
 
-    private String generateUrl(String playlistID, int maxResults) {
+    private String generateUrl(String playlistID) {
         return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(maxResults) + "&playlistId=" + playlistID + "&key=" + KEY;
     }
 
-    private String generateUrl(String playlistID, int maxResults, String nextPageToken) {
+    private String generateUrl(String playlistID, String nextPageToken) {
         return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(maxResults) + "&playlistId=" + playlistID + "&key=" + KEY + "&pageToken=" + nextPageToken;
     }
 
@@ -175,57 +236,6 @@ public class MainActivity extends AppCompatActivity {
         return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + KEY;
     }
 
-    /**
-     * Get all playlist videos information
-     *
-     * @param url  URL of the API call
-     * @param list Will be filled with the API response
-     */
-    private void getPlaylistItems(String url, final ArrayList<Playlist> list) {
-
-        System.out.println("URL : " + url);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-                LogHelper.e(e.getMessage(),e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-
-                if (!response.isSuccessful()){
-                    if (response.code() == 404){
-                        LogHelper.d("Error 404");
-                    }else{
-                        throw new IOException("Unexpected code " + response);
-                    }
-                }
-
-                Playlist pl = parsePlaylist(response.body().string());
-
-                if (pl != null) {
-
-                    list.add(pl);
-
-                    if (pl.nextPageToken != null) { // If there are another page
-                        getPlaylistItems(generateUrl(playlistID, maxResults, pl.nextPageToken), list);
-                    } else {
-                        playlistCallback(list);
-                    }
-                } else{
-                    LogHelper.d("PL null");
-                }
-            }
-        });
-
-    }
 
     /**
      * Parse Json from Youtube API
@@ -239,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             return jsonAdapter.fromJson(json);
         } catch (IOException e) {
-            e.printStackTrace();
+            LogHelper.e(e.getMessage(), e);
         }
         return null;
     }
