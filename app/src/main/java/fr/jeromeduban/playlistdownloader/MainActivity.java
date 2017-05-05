@@ -36,10 +36,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+//TODO Download vidéo
+//TODO Extract mp3
+//TODO Guess Artist and song name
+//TODO Add TextView to chose playlist
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final String TAG = "MainActivity";
 
     private String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
     private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
@@ -58,33 +60,39 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         // Wakelock
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); //FIXME
 
+        // Initialize ImageLoader
         config = new ImageLoaderConfiguration.Builder(this);
         config.threadPriority(Thread.NORM_PRIORITY - 2);
         config.denyCacheImageMultipleSizesInMemory();
         config.diskCacheFileNameGenerator(new Md5FileNameGenerator());
         config.diskCacheSize(50 * 1024 * 1024); // 50 MiB
         config.tasksProcessingOrder(QueueProcessingType.LIFO);
-        config.writeDebugLogs(); // Remove for release app
+
+        if (BuildConfig.DEBUG){
+            config.writeDebugLogs();
+        }
 
         ImageLoader.getInstance().init(config.build());
     }
 
+    /**
+     * Will be called when the user clicks on Start
+     */
     @OnClick(R.id.button)
     public void getPlaylist(){
         client = new OkHttpClient();
         ArrayList<Playlist> list = new ArrayList<>();
 
-        // TODO to be used : text from a TextView
+        // FIXME to be used : text from a TextView
         String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
         String id = test.split("list=")[1].split("&")[0];
-        if (id.length() != 34) {
-            LogHelper.d("id might be wrong");
-        }
-
         LogHelper.d(id);
 
+        if (id.length() != 34) { //TODO Check if id length is always 34
+            LogHelper.d("id might be wrong");
+        }
 
         getPlaylistItems(generateUrl(playlistID, maxResults), list);
     }
@@ -128,11 +136,11 @@ public class MainActivity extends AppCompatActivity {
 
                 });
 
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    Thread.sleep(500);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
         }
 
