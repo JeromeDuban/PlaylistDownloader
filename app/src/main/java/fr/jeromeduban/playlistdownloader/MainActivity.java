@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
@@ -127,16 +128,16 @@ public class MainActivity extends AppCompatActivity {
                     Handler mainHandler = new Handler(Looper.getMainLooper());
 
                 });
-
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         }
 
     }
+
+    /*@OnLongClick(R.id.container)
+    private void downloadLocally(){
+        final DownloadTask downloadTask = new DownloadTask(MainActivity.this, );
+        downloadTask.execute("the url to the file you want to download");
+    }*/
 
     private void displayCards(String title, String url) {
 
@@ -151,6 +152,9 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView iv = (ImageView) card.findViewById(R.id.thumbnail);
         imageLoader.displayImage(url, iv);
+
+        ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
+        pb.setVisibility(View.GONE);
 
         container.addView(card);
     }

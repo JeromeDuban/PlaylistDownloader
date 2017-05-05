@@ -32,6 +32,17 @@
             android:textStyle="bold"
             android:text="File Name" />
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/fileName"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/fileName"
+            android:layout_marginBottom="10dp"
+            android:layout_marginRight="10dp"/>
+
 
     </RelativeLayout>
 </android.support.v7.widget.CardView>
