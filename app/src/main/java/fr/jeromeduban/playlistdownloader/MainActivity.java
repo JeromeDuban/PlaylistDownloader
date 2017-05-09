@@ -12,10 +12,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -48,9 +50,8 @@ import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
 public class MainActivity extends AppCompatActivity {
 
     protected static String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
-    protected static int maxResults = 6;
+    protected static int maxResults = 10;
 
-    private String playlistID = "PLTMG0ZyH_DfDs5w40xw2LM0FvMBFtYvqP";
     private OkHttpClient client;
 
     private Activity a;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.container)
     LinearLayout container;
+
+    @BindView(R.id.playlist_url)
+    EditText playlistUrlET;
 
     private ArrayList<Playlist> list = new ArrayList<>();
 
@@ -96,24 +100,34 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.button)
     public void getPlaylist() {
 
-        // FIXME to be used : text from a TextView
+
         // Parse playlist from youtube link
-        String test = "https://www.youtube.com/watch?v=0TFmncOtzcE&index=1&list=PLTMG0ZyH_DfDsK6j40SUmHGgpv7qTa-QA";
-        String id = test.split("list=")[1].split("&")[0];
+        String url = playlistUrlET.getText().toString().trim();
+        String id = url.split("list=")[1].split("&")[0];
         LogHelper.d(id);
+
         if (id.length() != 34) { //TODO Check if id length is always 34
             LogHelper.d("id might be wrong");
+            Toast.makeText(this, "La playlist renseignée est peut être incorrecte", Toast.LENGTH_SHORT).show();
         }
 
-        getPlaylistItems(generateUrl(playlistID));
+        getPlaylistItems(id, null);
     }
 
     /**
      * Get all playlist videos information
      *
-     * @param url URL of the API call
+     * @param id Id of the playlist
      */
-    private void getPlaylistItems(String url) {
+    private void getPlaylistItems(final String id, final String pageToken) {
+
+        String url;
+        if (pageToken == null) {
+            url = generateUrl(id);
+        } else {
+            url = generateUrl(id, pageToken);
+        }
+
 
         LogHelper.i("Getting videos from : " + url);
 
@@ -152,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // If there are another page, get next playlist items
                         if (pl.nextPageToken != null) {
-                            getPlaylistItems(generateUrl(playlistID, pl.nextPageToken));
+                            getPlaylistItems(id, pl.nextPageToken);
                         } else {
                             playlistCallback(list);
                         }
@@ -197,9 +211,9 @@ public class MainActivity extends AppCompatActivity {
 
                                 @Override
                                 public void run() {
-                                    if (playlist.items !=null && playlist.items.size() > 0) {
+                                    if (playlist.items != null && playlist.items.size() > 0) {
                                         displayCard(playlist.items.get(0));
-                                    }else{
+                                    } else {
                                         LogHelper.i("Vidéo supprimée");
                                     }
                                 }
@@ -216,26 +230,40 @@ public class MainActivity extends AppCompatActivity {
         String title = item.snippet.title;
         String url = item.snippet.thumbnails.medium.url;
 
+        // Load Image
         ImageLoader imageLoader = ImageLoader.getInstance();
         LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View card = in.inflate(R.layout.card, container, false);
         card.setTag(item);
-
-        TextView tv = (TextView) card.findViewById(R.id.fileName);
-        tv.setText(title);
-
         ImageView iv = (ImageView) card.findViewById(R.id.thumbnail);
         imageLoader.displayImage(url, iv);
 
+        // Display video Name
+        TextView videoNameTV = (TextView) card.findViewById(R.id.video_name);
+        videoNameTV.setText(title);
+
+        // Try to guess artist & song name
+        String[] parts = title.split("-");
+
+        TextView songArtistTV = (TextView) card.findViewById(R.id.song_artist);
+        songArtistTV.setText(parts[0].trim());
+
+        if (parts.length > 1){
+            String songTitle = parts[1].contains("(") ? parts[1].split("\\(")[0]:parts[1];
+            TextView songTitleTV = (TextView) card.findViewById(R.id.song_title);
+            songTitleTV.setText(songTitle.trim());
+        }
+
+
+        // Download management
         ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
         pb.setVisibility(View.GONE);
-
         card.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
-                Item item = (Item)v.getTag();
-                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id);
+                Item item = (Item) v.getTag();
+                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id); //FIXME Url
                 return false;
             }
         });

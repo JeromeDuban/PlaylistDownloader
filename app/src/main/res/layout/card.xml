@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="100dp"
     android:layout_margin="5dp"
-    android:layout_marginBottom="10dp"
+    android:layout_marginBottom="@dimen/magic_margin"
     card_view:cardCornerRadius="4dp">
 
     <RelativeLayout
@@ -20,28 +20,53 @@
             android:contentDescription="Thumbnail"/>
 
         <TextView
-            android:id="@+id/fileName"
+            android:id="@+id/video.name"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
+            android:layout_height="18dp"
             android:layout_toRightOf="@+id/thumbnail"
             android:layout_toEndOf="@+id/thumbnail"
             android:gravity="center_vertical"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginTop="@dimen/magic_margin"
+            android:layout_marginLeft="@dimen/magic_margin"
+            android:layout_marginStart="@dimen/magic_margin"
             android:textStyle="bold"
-            android:text="File Name" />
+            android:text="@string/interrogation_mark" />
+
+        <TextView
+            android:layout_below="@+id/video.name"
+            android:id="@+id/song.title"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="@dimen/magic_margin"
+            android:layout_marginStart="@dimen/magic_margin"
+            android:text="@string/interrogation_mark" />
+
+        <TextView
+            android:layout_below="@+id/song.title"
+            android:id="@+id/song.artist"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="@dimen/magic_margin"
+            android:layout_marginStart="@dimen/magic_margin"
+            android:text="@string/interrogation_mark" />
 
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/fileName"
+            android:layout_alignLeft="@+id/video.name"
             android:layout_alignParentBottom="true"
-            android:layout_alignStart="@+id/fileName"
-            android:layout_marginBottom="10dp"
-            android:layout_marginRight="10dp"/>
+            android:layout_alignStart="@+id/video.name"
+            android:layout_marginBottom="@dimen/magic_margin"
+            android:layout_marginEnd="@dimen/magic_margin"
+            android:layout_marginRight="@dimen/magic_margin"/>
 
 
     </RelativeLayout>
