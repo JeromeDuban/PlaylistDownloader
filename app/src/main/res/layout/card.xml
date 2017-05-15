@@ -57,6 +57,7 @@
             android:text="@string/interrogation_mark" />
 
         <ProgressBar
+            android:progressTint="@android:color/holo_blue_dark"
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"

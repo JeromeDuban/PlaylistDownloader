@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,11 +26,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -103,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void checkPermission() {
+    private boolean checkPermission() {
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(a,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -113,9 +119,20 @@ public class MainActivity extends AppCompatActivity {
             if (ActivityCompat.shouldShowRequestPermissionRationale(a,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
 
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
+                new MaterialDialog.Builder(this)
+                        .title(R.string.app_name)
+                        .content(R.string.permission_explanation)
+                        .positiveText("Accepter")
+                        .negativeText("Refuser")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                ActivityCompat.requestPermissions(a,
+                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        WRITE_PERMISSION);
+                            }
+                        })
+                        .show();
 
 
 
@@ -131,7 +148,10 @@ public class MainActivity extends AppCompatActivity {
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
+        }else {
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -172,6 +192,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         getPlaylistItems(id, null);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(playlistUrlET.getWindowToken(), 0);
     }
 
     /**
@@ -317,15 +339,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Download management
         ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
-        pb.setVisibility(View.GONE);
+        if (new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
+            pb.setVisibility(View.VISIBLE);
+            pb.setProgress(100);
+        }else{
+            pb.setVisibility(View.GONE);
+        }
+
         card.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                checkPermission();
-                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
-                Item item = (Item)v.getTag();
-                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id,title);
+                if (checkPermission()){
+                    final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
+                    Item item = (Item)v.getTag();
+                    downloadTask.execute(item.id,title);
 
+                }else{
+                    Utils.ToastOnUIThread(a, "Impossible de télécharger ce fichier tant que l'autorisation d'écrire sur le téléphone n'aura pas été donnée.");
+                }
                 return false;
             }
         });

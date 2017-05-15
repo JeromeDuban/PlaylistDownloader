@@ -20,7 +20,7 @@ import java.net.URL;
  * Created by PASS03911 on 05/05/2017.
  */
 
-public class DownloadTask extends AsyncTask<String, Integer, String> {
+public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
 
     private Context context;
     private ProgressBar mProgressBar;
@@ -32,28 +32,45 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
     }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected Boolean doInBackground(String... params) {
         InputStream input = null;
         OutputStream output = null;
         HttpURLConnection connection = null;
-        try {
-            URL url = new URL(params[0]);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect();
+        String id = params[0];
+        String name = params[1];
 
-            // expect HTTP 200 OK, so we don't mistakenly save error report
-            // instead of the file
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                return "Server returned HTTP " + connection.getResponseCode()
-                        + " " + connection.getResponseMessage();
+        try {
+            LogHelper.i(id +">Downloading file");
+
+            int retry = 3;
+            URL url = new URL("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + id); //TODO Extract base url
+
+            int fileLength = -1;
+            while (fileLength == -1 && retry >= 0){
+                LogHelper.i(id +">Connecting, Retry=" + String.valueOf(retry));
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                // expect HTTP 200 OK, so we don't mistakenly save error report
+                // instead of the file
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    LogHelper.e(id +">Code :" + connection.getResponseCode());
+                    return false;
+                }
+
+                // this will be useful to display download percentage
+                // might be -1: server did not report the length
+                fileLength = connection.getContentLength();
+                LogHelper.i(id +">File length :" + String.valueOf(fileLength));
+                retry --;
+            }
+            if (fileLength == -1 || retry < 0){
+                return false;
             }
 
-            // this will be useful to display download percentage
-            // might be -1: server did not report the length
-            int fileLength = connection.getContentLength();
-
-            File f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", params[1] + ".mp3");
+            File f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", name + ".mp3");
             boolean result = f.getParentFile().mkdirs(); //TODO Use result
+            LogHelper.i(id +">File Created");
 
             // download the file
             input = connection.getInputStream();
@@ -74,8 +91,11 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
                     publishProgress((int) (total * 100 / fileLength));
                 output.write(data, 0, count);
             }
+            LogHelper.i(id +">File downloaded");
+
         } catch (Exception e) {
-            return e.toString();
+            LogHelper.e(e.getMessage(), e);
+            return false;
         } finally {
             try {
                 if (output != null)
@@ -88,7 +108,7 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
             if (connection != null)
                 connection.disconnect();
         }
-        return null;
+        return true;
     }
 
     @Override
@@ -113,12 +133,14 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
     }
 
     @Override
-    protected void onPostExecute(String result) {
+    protected void onPostExecute(Boolean result) {
         mWakeLock.release();
-        //mProgressBar.dismiss();
-        if (result != null)
+
+        if (!result) {
             Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
-        else
-            Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
+        } else {
+            //Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }
