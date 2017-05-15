@@ -42,10 +42,8 @@ import static fr.jeromeduban.playlistdownloader.Utils.generateUrl;
 import static fr.jeromeduban.playlistdownloader.Utils.generateUrlVideoID;
 import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
 
-//TODO Download video
-//TODO Extract mp3
-//TODO Guess Artist and song name
-//TODO Add TextView to chose playlist
+//TODO Don't wait to received the whole playlist before displaying songs
+//TODO Add permissions management
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,11 +92,11 @@ public class MainActivity extends AppCompatActivity {
         ImageLoader.getInstance().init(config.build());
 
 
-        requestPermission();
+        checkPermission();
 
     }
 
-    private void requestPermission() {
+    private void checkPermission() {
         //TODO
     }
 

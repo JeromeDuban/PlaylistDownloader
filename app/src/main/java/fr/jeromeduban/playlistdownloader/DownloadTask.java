@@ -52,9 +52,12 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
             // might be -1: server did not report the length
             int fileLength = connection.getContentLength();
 
+            File f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", params[1] + ".mp3");
+            boolean result = f.getParentFile().mkdirs(); //TODO Use result
+
             // download the file
             input = connection.getInputStream();
-            output = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader/" + params[1] + "mp3"));
+            output = new FileOutputStream(f);
 
             byte data[] = new byte[4096];
             long total = 0;
