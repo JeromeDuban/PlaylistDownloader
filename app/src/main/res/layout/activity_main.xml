@@ -26,9 +26,11 @@
                 <EditText
                     android:id="@+id/playlistUrl"
                     android:layout_width="match_parent"
-                    android:layout_toStartOf="@+id/button"
                     android:layout_height="wrap_content"
-                    android:layout_toLeftOf="@+id/button"/>
+                    android:layout_toLeftOf="@+id/button"
+                    android:layout_toStartOf="@+id/button"
+                    android:inputType="textUri"
+                    android:text="https://www.youtube.com/playlist?list=PLTMG0ZyH_DfBFPJA0dLWijvzbONcg9Tkg&amp;disable_polymer=true"/>
 
                 <Button
                     android:id="@+id/button"

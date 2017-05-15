@@ -88,6 +88,14 @@ public class MainActivity extends AppCompatActivity {
 //        }
 
         ImageLoader.getInstance().init(config.build());
+
+
+        requestPermission();
+
+    }
+
+    private void requestPermission() {
+        //TODO
     }
 
     /**
@@ -213,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayCard(Item item) {
 
-        String title = item.snippet.title;
+        final String title = item.snippet.title;
         String url = item.snippet.thumbnails.medium.url;
 
         ImageLoader imageLoader = ImageLoader.getInstance();
@@ -235,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onLongClick(View v) {
                 final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
                 Item item = (Item)v.getTag();
-                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id);
+                downloadTask.execute("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + item.id,title);
                 return false;
             }
         });

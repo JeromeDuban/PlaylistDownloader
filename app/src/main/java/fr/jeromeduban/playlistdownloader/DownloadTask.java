@@ -32,12 +32,12 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
     }
 
     @Override
-    protected String doInBackground(String... sUrl) {
+    protected String doInBackground(String... params) {
         InputStream input = null;
         OutputStream output = null;
         HttpURLConnection connection = null;
         try {
-            URL url = new URL(sUrl[0]);
+            URL url = new URL(params[0]);
             connection = (HttpURLConnection) url.openConnection();
             connection.connect();
 
@@ -54,7 +54,7 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
 
             // download the file
             input = connection.getInputStream();
-            output = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath() + "/test.mp3"));
+            output = new FileOutputStream(new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader/" + params[1] + "mp3"));
 
             byte data[] = new byte[4096];
             long total = 0;
@@ -114,8 +114,8 @@ public class DownloadTask extends AsyncTask<String, Integer, String> {
         mWakeLock.release();
         //mProgressBar.dismiss();
         if (result != null)
-            Toast.makeText(context,"Download error: "+result, Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
         else
-            Toast.makeText(context,"File downloaded", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
     }
 }
