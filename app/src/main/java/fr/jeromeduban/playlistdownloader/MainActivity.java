@@ -32,6 +32,7 @@ import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
+import com.pnikosis.materialishprogress.ProgressWheel;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +76,15 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.playlist_url)
     EditText playlistUrlET;
+
+    @BindView(R.id.progress_wheel)
+    ProgressWheel progressWheel;
+
+    @BindView(R.id.layout_download)
+    View layoutDownload;
+
+    @BindView(R.id.layout_download_all)
+    View layoutDownloadAll;
 
     private ArrayList<Playlist> list = new ArrayList<>();
 
@@ -180,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.button)
     public void getPlaylist() {
 
+        progressWheel.setVisibility(View.VISIBLE);
 
         // Parse playlist from youtube link
         String url = playlistUrlET.getText().toString().trim();
@@ -223,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call call, IOException e) {
                 LogHelper.e(e.getMessage(), e);
-                //TODO Add Retry !!!!!
+                getPlaylistItems(id,pageToken); //TODO limit retries
             }
 
             @Override
@@ -267,6 +278,14 @@ public class MainActivity extends AppCompatActivity {
      */
     private void playlistCallback(ArrayList<Playlist> list) {
         final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+        a.runOnUiThread(new Runnable() {
+            public void run() {
+                layoutDownload.setVisibility(View.GONE);
+                layoutDownloadAll.setVisibility(View.VISIBLE);
+                progressWheel.setVisibility(View.GONE);
+            }
+        });
 
         for (Playlist playList : list) {
             for (final Item item : playList.items) {
@@ -349,19 +368,39 @@ public class MainActivity extends AppCompatActivity {
         card.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (checkPermission()){
-                    final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
-                    Item item = (Item)v.getTag();
-                    downloadTask.execute(item.id,title);
-
-                }else{
-                    Utils.ToastOnUIThread(a, "Impossible de télécharger ce fichier tant que l'autorisation d'écrire sur le téléphone n'aura pas été donnée.");
-                }
-                return false;
+               return downloadSong(v);
             }
         });
 
         container.addView(card);
+    }
+
+    @OnClick(R.id.button_download_all)
+    void downloadAll(){
+
+        final int childcount = container.getChildCount();
+        for (int i = 0; i < childcount; i++) {
+            View v = container.getChildAt(i);
+            downloadSong(v);
+        }
+    }
+
+    private boolean downloadSong(View v){
+        if (checkPermission()){
+
+            TextView videoNameTV = (TextView) v.findViewById(R.id.video_name);
+            String title = videoNameTV.getText().toString().trim();
+
+            if (!new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
+                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
+                Item item = (Item)v.getTag();
+                downloadTask.execute(item.id,title);
+            }
+
+        }else{
+            Utils.ToastOnUIThread(a, "Impossible de télécharger ce fichier tant que l'autorisation d'écrire sur le téléphone n'aura pas été donnée.");
+        }
+        return true;
     }
 
     @Override

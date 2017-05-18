@@ -6,4 +6,5 @@
     <string name="sample_playlist"><![CDATA[https://www.youtube.com/playlist?list=PLTMG0ZyH_DfBFPJA0dLWijvzbONcg9Tkg&amp;disable_polymer=true]]></string>
     <string name="interrogation_mark">\?</string>
     <string name="permission_explanation">Cette application à besoin de pouvoir écrire des données sur votre téléphone pour fonctionner correctement. Merci de bien vouloir lui donner cette autorisation.</string>
+    <string name="download_all">Download All</string>
 </resources>

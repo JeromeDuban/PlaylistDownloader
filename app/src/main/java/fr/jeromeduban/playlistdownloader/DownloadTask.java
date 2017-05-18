@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.PowerManager;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -49,6 +50,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
             while (fileLength == -1 && retry >= 0){
                 LogHelper.i(id +">Connecting, Retry=" + String.valueOf(retry));
                 connection = (HttpURLConnection) url.openConnection();
+                connection.setReadTimeout(5*1000);
                 connection.connect();
 
                 // expect HTTP 200 OK, so we don't mistakenly save error report
@@ -137,7 +139,11 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         mWakeLock.release();
 
         if (!result) {
-            Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
+            mProgressBar.setIndeterminate(false);
+            mProgressBar.setMax(100);
+            mProgressBar.setProgress(100);
+            mProgressBar.setBackgroundColor(ContextCompat.getColor(context,R.color.md_red_500));
+            Toast.makeText(context, "Download error: ", Toast.LENGTH_LONG).show();
         } else {
             //Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
         }
