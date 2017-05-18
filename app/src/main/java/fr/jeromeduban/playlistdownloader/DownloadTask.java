@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
     private ProgressBar mProgressBar;
     private PowerManager.WakeLock mWakeLock;
     private File f;
+    private int retry = 5;
 
     public DownloadTask(Context context, View view) {
         this.mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
@@ -47,14 +49,13 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         try {
             LogHelper.i(id +">Downloading file");
 
-            int retry = 5;
             URL url = new URL("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + id); //TODO Extract base url
 
             int fileLength = -1;
             while (fileLength == -1 && retry >= 0){
                 LogHelper.i(id +">Connecting, Retry=" + String.valueOf(retry));
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setReadTimeout(5*1000);
+                connection.setReadTimeout(10*1000);
                 connection.connect();
 
                 // expect HTTP 200 OK, so we don't mistakenly save error report
@@ -68,7 +69,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
                 // might be -1: server did not report the length
                 fileLength = connection.getContentLength();
                 LogHelper.i(id +">File length :" + String.valueOf(fileLength));
-                retry --;
+                retry--;
             }
             if (fileLength == -1 || retry < 0){
                 return false;
@@ -136,6 +137,12 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         mProgressBar.setIndeterminate(false);
         mProgressBar.setMax(100);
         mProgressBar.setProgress(progress[0]);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mProgressBar.setProgressTintList(ContextCompat.getColorStateList(context,R.color.md_blue_400));
+        }else{
+            mProgressBar.getProgressDrawable().setColorFilter(
+                    ContextCompat.getColor(context,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
+        }
     }
 
     @Override

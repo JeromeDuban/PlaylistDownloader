@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -358,6 +359,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Download management
         ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            pb.setProgressTintList(ContextCompat.getColorStateList(MainActivity.this,R.color.md_blue_400));
+        }else{
+            pb.getProgressDrawable().setColorFilter(
+                    ContextCompat.getColor(MainActivity.this,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
+        }
         if (new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
             pb.setVisibility(View.VISIBLE);
             pb.setProgress(100);
