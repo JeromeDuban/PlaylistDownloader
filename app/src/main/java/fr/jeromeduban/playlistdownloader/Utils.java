@@ -1,8 +1,15 @@
 package fr.jeromeduban.playlistdownloader;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 
@@ -15,6 +22,8 @@ import fr.jeromeduban.playlistdownloader.objects.Playlist;
  */
 
 class Utils {
+    protected static final int WRITE_PERMISSION = 100;
+
 
     static void ToastOnUIThread(final Activity a, final String message){
         a.runOnUiThread(new Runnable() {
@@ -25,15 +34,15 @@ class Utils {
     }
 
     static String generateUrl(String playlistID) {
-        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(MainActivity.maxResults) + "&playlistId=" + playlistID + "&key=" + MainActivity.KEY;
+        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(DownloadActivity.maxResults) + "&playlistId=" + playlistID + "&key=" + DownloadActivity.KEY;
     }
 
     static String generateUrl(String playlistID, String nextPageToken) {
-        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(MainActivity.maxResults) + "&playlistId=" + playlistID + "&key=" + MainActivity.KEY + "&pageToken=" + nextPageToken;
+        return "https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=" + Integer.toString(DownloadActivity.maxResults) + "&playlistId=" + playlistID + "&key=" + DownloadActivity.KEY + "&pageToken=" + nextPageToken;
     }
 
     static String generateUrlVideoID(String videoID) {
-        return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + MainActivity.KEY;
+        return "https://www.googleapis.com/youtube/v3/videos?id=" + videoID + "&part=snippet" + "&key=" + DownloadActivity.KEY;
     }
 
 
@@ -52,5 +61,50 @@ class Utils {
             LogHelper.e(e.getMessage(), e);
         }
         return null;
+    }
+
+    protected static boolean checkPermission(final Activity a) {
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(a,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(a,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                new MaterialDialog.Builder(a)
+                        .title(R.string.app_name)
+                        .content(R.string.permission_explanation)
+                        .positiveText("Accepter")
+                        .negativeText("Refuser")
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                ActivityCompat.requestPermissions(a,
+                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                        WRITE_PERMISSION);
+                            }
+                        })
+                        .show();
+
+
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(a,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        WRITE_PERMISSION);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }else {
+            return true;
+        }
+        return false;
     }
 }

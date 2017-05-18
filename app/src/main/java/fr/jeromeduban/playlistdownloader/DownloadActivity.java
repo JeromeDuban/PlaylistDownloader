@@ -1,6 +1,5 @@
 package fr.jeromeduban.playlistdownloader;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -9,8 +8,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -18,17 +15,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -57,10 +50,7 @@ import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
 //TODO Don't wait to received the whole playlist before displaying songs
 //TODO Add permissions management
 
-public class MainActivity extends AppCompatActivity {
-
-    private static final int WRITE_PERMISSION = 100;
-
+public class DownloadActivity extends AppCompatActivity {
 
     protected static String KEY = "AIzaSyCAsga_OKjW0350A0msLolXm6-B0769unc";
     protected static int maxResults = 10;
@@ -69,30 +59,21 @@ public class MainActivity extends AppCompatActivity {
 
     private Activity a;
 
-    @BindView(R.id.button)
-    Button button;
-
     @BindView(R.id.container)
     LinearLayout container;
-
-    @BindView(R.id.playlist_url)
-    EditText playlistUrlET;
 
     @BindView(R.id.progress_wheel)
     ProgressWheel progressWheel;
 
-    @BindView(R.id.layout_download)
-    View layoutDownload;
-
-    @BindView(R.id.layout_download_all)
-    View layoutDownloadAll;
+    @BindView(R.id.button_download_all)
+    Button downloadAll;
 
     private ArrayList<Playlist> list = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_download);
         ButterKnife.bind(this);
 
         a = this;
@@ -115,61 +96,17 @@ public class MainActivity extends AppCompatActivity {
 
         ImageLoader.getInstance().init(config.build());
 
-
-        checkPermission();
-
+        Utils.checkPermission(this);
+        getPlaylist(getIntent().getStringExtra("url"));
     }
 
-    private boolean checkPermission() {
-        // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(a,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
 
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(a,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-
-                new MaterialDialog.Builder(this)
-                        .title(R.string.app_name)
-                        .content(R.string.permission_explanation)
-                        .positiveText("Accepter")
-                        .negativeText("Refuser")
-                        .onPositive(new MaterialDialog.SingleButtonCallback() {
-                            @Override
-                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                ActivityCompat.requestPermissions(a,
-                                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                        WRITE_PERMISSION);
-                            }
-                        })
-                        .show();
-
-
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(a,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        WRITE_PERMISSION);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        }else {
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case WRITE_PERMISSION: {
+            case Utils.WRITE_PERMISSION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -185,16 +122,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Will be called when the user clicks on Start
-     */
-    @OnClick(R.id.button)
-    public void getPlaylist() {
+
+    public void getPlaylist(String url) {
 
         progressWheel.setVisibility(View.VISIBLE);
 
-        // Parse playlist from youtube link
-        String url = playlistUrlET.getText().toString().trim();
         String id = url.split("list=")[1].split("&")[0];
         LogHelper.d(id);
 
@@ -204,8 +136,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         getPlaylistItems(id, null);
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(playlistUrlET.getWindowToken(), 0);
     }
 
     /**
@@ -282,8 +212,7 @@ public class MainActivity extends AppCompatActivity {
 
         a.runOnUiThread(new Runnable() {
             public void run() {
-                layoutDownload.setVisibility(View.GONE);
-                layoutDownloadAll.setVisibility(View.VISIBLE);
+                downloadAll.setEnabled(true);
                 progressWheel.setVisibility(View.GONE);
             }
         });
@@ -360,10 +289,10 @@ public class MainActivity extends AppCompatActivity {
         // Download management
         ProgressBar pb = (ProgressBar) card.findViewById(R.id.progressBar);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            pb.setProgressTintList(ContextCompat.getColorStateList(MainActivity.this,R.color.md_blue_400));
+            pb.setProgressTintList(ContextCompat.getColorStateList(DownloadActivity.this,R.color.md_blue_400));
         }else{
             pb.getProgressDrawable().setColorFilter(
-                    ContextCompat.getColor(MainActivity.this,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
+                    ContextCompat.getColor(DownloadActivity.this,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
         }
         if (new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
             pb.setVisibility(View.VISIBLE);
@@ -385,21 +314,21 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.button_download_all)
     void downloadAll(){
 
-        final int childcount = container.getChildCount();
-        for (int i = 0; i < childcount; i++) {
+        final int childCount = container.getChildCount();
+        for (int i = 0; i < childCount; i++) {
             View v = container.getChildAt(i);
             downloadSong(v);
         }
     }
 
     private boolean downloadSong(View v){
-        if (checkPermission()){
+        if (Utils.checkPermission(this)){
 
             TextView videoNameTV = (TextView) v.findViewById(R.id.video_name);
             String title = videoNameTV.getText().toString().trim();
 
             if (!new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
-                final DownloadTask downloadTask = new DownloadTask(MainActivity.this, v);
+                final DownloadTask downloadTask = new DownloadTask(DownloadActivity.this, v);
                 Item item = (Item)v.getTag();
                 downloadTask.execute(item.id,title);
             }

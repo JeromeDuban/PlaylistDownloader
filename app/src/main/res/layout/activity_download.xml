@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity">
+    tools:context=".DownloadActivity">
 
     <com.pnikosis.materialishprogress.ProgressWheel
         android:id="@+id/progress_wheel"
@@ -30,37 +30,11 @@
             android:orientation="vertical">
 
             <RelativeLayout
-                android:id="@+id/layout.download"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/playlist_url"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toLeftOf="@+id/button"
-                    android:layout_toStartOf="@+id/button"
-                    android:inputType="textUri"
-                    android:maxLines="1"
-                    android:text="@string/sample_playlist" />
-
-                <Button
-                    android:id="@+id/button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"
-                    android:layout_gravity="center_horizontal"
-                    android:text="Start" />
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:visibility="gone"
                 android:id="@+id/layout.download_all"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <Button
+                    android:enabled="false"
                     android:id="@+id/button.download_all"
                     android:layout_width="match_parent"
                     android:text="@string/download_all"
