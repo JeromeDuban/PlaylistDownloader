@@ -1,10 +1,12 @@
 package fr.jeromeduban.playlistdownloader;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -17,6 +19,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+
 /**
  * Created by PASS03911 on 05/05/2017.
  */
@@ -26,6 +29,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
     private Context context;
     private ProgressBar mProgressBar;
     private PowerManager.WakeLock mWakeLock;
+    private File f;
 
     public DownloadTask(Context context, View view) {
         this.mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
@@ -43,7 +47,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         try {
             LogHelper.i(id +">Downloading file");
 
-            int retry = 3;
+            int retry = 5;
             URL url = new URL("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + id); //TODO Extract base url
 
             int fileLength = -1;
@@ -70,7 +74,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
                 return false;
             }
 
-            File f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", name + ".mp3");
+            f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", name + ".mp3");
             boolean result = f.getParentFile().mkdirs(); //TODO Use result
             LogHelper.i(id +">File Created");
 
@@ -142,8 +146,13 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
             mProgressBar.setIndeterminate(false);
             mProgressBar.setMax(100);
             mProgressBar.setProgress(100);
-            mProgressBar.setBackgroundColor(ContextCompat.getColor(context,R.color.md_red_500));
-            Toast.makeText(context, "Download error: ", Toast.LENGTH_LONG).show();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mProgressBar.setProgressTintList(ColorStateList.valueOf(Color.RED));
+            }else{
+                mProgressBar.getProgressDrawable().setColorFilter(
+                        Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+            }
+            Toast.makeText(context, "Download error", Toast.LENGTH_LONG).show();
         } else {
             //Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show();
         }
