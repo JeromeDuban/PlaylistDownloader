@@ -47,8 +47,7 @@ import static fr.jeromeduban.playlistdownloader.Utils.generateUrl;
 import static fr.jeromeduban.playlistdownloader.Utils.generateUrlVideoID;
 import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
 
-//TODO Don't wait to received the whole playlist before displaying songs
-//TODO Add permissions management
+//TODO Store asynctasks in list to cancel them when user press back !!!!!
 
 public class DownloadActivity extends AppCompatActivity {
 
