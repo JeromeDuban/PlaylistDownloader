@@ -2,6 +2,7 @@ package fr.jeromeduban.playlistdownloader;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -13,14 +14,19 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-// TODO Add a way to share playlist from youtube app to this app
 
 public class HomeActivity extends AppCompatActivity {
+
+    public static Map<String, String> playlistsMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +38,6 @@ public class HomeActivity extends AppCompatActivity {
 
         Utils.checkPermission(this);
 
-
-
         //TODO Export in method
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -43,19 +47,25 @@ public class HomeActivity extends AppCompatActivity {
 
             //Format = "listName : http://playlistUrl"
             String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-            String[] list = sharedText.split(":",2);
-            if (list.length == 2 && list[1].toLowerCase().contains("list=")){
-                openNewPlaylistDialog(list[1].trim(),list[0].trim());
-            }else{
+            String[] list = sharedText.split(":", 2);
+            if (list.length == 2 && list[1].toLowerCase().contains("list=")) {
+                openNewPlaylistDialog(list[1].trim(), list[0].trim());
+            } else {
                 Toast.makeText(this, "Error while getting playlist", Toast.LENGTH_SHORT).show();
             }
         }
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getPlaylists();
+    }
+
     @OnClick(R.id.fab)
     void fabAction(View view) {
-        openNewPlaylistDialog(null,null);
+        openNewPlaylistDialog(null, null);
     }
 
     private void openNewPlaylistDialog(@Nullable String url, @Nullable String name) {
@@ -63,6 +73,16 @@ public class HomeActivity extends AppCompatActivity {
                 .title("Nouvelle liste")
                 .customView(R.layout.new_playlist, false)
                 .positiveText("Valider")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if (addPlaylist(dialog)) {
+                            dialog.dismiss();
+                        }else{
+                            Utils.ToastOnUIThread(HomeActivity.this,"La playlist éxiste déjà. ");
+                        }
+                    }
+                })
                 .show()
                 .getCustomView();
 
@@ -71,13 +91,12 @@ public class HomeActivity extends AppCompatActivity {
             EditText urlET = (EditText) v.findViewById(R.id.playlist_url);
             EditText nameET = (EditText) v.findViewById(R.id.playlist_name);
 
-            if(url !=null){
+            if (url != null) {
                 urlET.setText(url);
             }
 
-            if(name !=null){
+            if (name != null) {
                 nameET.setText(name);
-                nameET.setEnabled(true);
             }
 
             final ImageView icon = (ImageView) v.findViewById(R.id.icon);
@@ -85,20 +104,18 @@ public class HomeActivity extends AppCompatActivity {
             urlET.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
                 }
 
                 @Override
                 public void onTextChanged(final CharSequence charSequence, int i, final int count, int i2) {
-
                     HomeActivity.this.runOnUiThread(new Runnable() {
                         public void run() {
-                            if (count > 5) {
+                            if (charSequence.length() > 5) {
                                 icon.setVisibility(View.VISIBLE);
 
                                 String[] splits = charSequence.toString().split("list=");
 
-                                if (splits.length > 1){
+                                if (splits.length > 1) {
                                     String id = charSequence.toString().split("list=")[1].split("&")[0];
                                     LogHelper.d(id);
 
@@ -119,10 +136,31 @@ public class HomeActivity extends AppCompatActivity {
 
                 @Override
                 public void afterTextChanged(Editable editable) {
-
                 }
             });
         }
+    }
+
+    private boolean addPlaylist(MaterialDialog dialog) {
+        View v = dialog.getCustomView();
+        if (v != null && playlistsMap != null) {
+            EditText urlET = (EditText) v.findViewById(R.id.playlist_url);
+            EditText nameET = (EditText) v.findViewById(R.id.playlist_name);
+
+            for (Map.Entry<String, String> entry : playlistsMap.entrySet()) {
+                if (entry.getKey().equals(urlET.getText().toString().trim())) return false;
+            }
+            playlistsMap.put(urlET.getText().toString().trim(),nameET.getText().toString().trim());
+            savePlaylists();
+            refreshUI();
+            return true;
+        }
+
+        return false;
+    }
+
+    private void refreshUI() {
+        //TODO
     }
 
     @OnClick(R.id.temp)
@@ -130,6 +168,21 @@ public class HomeActivity extends AppCompatActivity {
         Intent i = new Intent(this, DownloadActivity.class);
         i.putExtra("url", getResources().getString(R.string.sample_playlist));
         startActivity(i);
+    }
+
+    public boolean savePlaylists() {
+        //TODO
+        return true;
+    }
+
+    public Map<String, String> getPlaylists() {
+        //TODO
+
+        playlistsMap = new HashMap<>();
+        playlistsMap.put("https://www.youtube.com/watch?v=CDrCGZVe5zM&list=RDCDrCGZVe5zM", "Mix chill");
+        playlistsMap.put("https://www.youtube.com/playlist?list=PLTMG0ZyH_DfBFPJA0dLWijvzbONcg9Tkg", "Nazes old");
+
+        return playlistsMap;
     }
 
 }
