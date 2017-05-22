@@ -2,6 +2,7 @@ package fr.jeromeduban.playlistdownloader;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -10,6 +11,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
@@ -30,12 +32,33 @@ public class HomeActivity extends AppCompatActivity {
 
         Utils.checkPermission(this);
 
+
+
+        //TODO Export in method
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+
+            //Format = "listName : http://playlistUrl"
+            String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            String[] list = sharedText.split(":",2);
+            if (list.length == 2 && list[1].toLowerCase().contains("list=")){
+                openNewPlaylistDialog(list[1].trim(),list[0].trim());
+            }else{
+                Toast.makeText(this, "Error while getting playlist", Toast.LENGTH_SHORT).show();
+            }
+        }
+
     }
 
     @OnClick(R.id.fab)
     void fabAction(View view) {
+        openNewPlaylistDialog(null,null);
+    }
 
-
+    private void openNewPlaylistDialog(@Nullable String url, @Nullable String name) {
         View v = new MaterialDialog.Builder(this)
                 .title("Nouvelle liste")
                 .customView(R.layout.new_playlist, false)
@@ -44,7 +67,19 @@ public class HomeActivity extends AppCompatActivity {
                 .getCustomView();
 
         if (v != null) {
-            EditText urlET = (EditText) v.findViewById(R.id.playlistURL);
+
+            EditText urlET = (EditText) v.findViewById(R.id.playlist_url);
+            EditText nameET = (EditText) v.findViewById(R.id.playlist_name);
+
+            if(url !=null){
+                urlET.setText(url);
+            }
+
+            if(name !=null){
+                nameET.setText(name);
+                nameET.setEnabled(true);
+            }
+
             final ImageView icon = (ImageView) v.findViewById(R.id.icon);
 
             urlET.addTextChangedListener(new TextWatcher() {
@@ -88,7 +123,6 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
         }
-
     }
 
     @OnClick(R.id.temp)
