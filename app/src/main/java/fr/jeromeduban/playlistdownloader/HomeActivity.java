@@ -10,8 +10,11 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -20,11 +23,15 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import java.util.HashMap;
 import java.util.Map;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
 public class HomeActivity extends AppCompatActivity {
+
+    @BindView(R.id.home_container)
+    LinearLayout homeContainer;
 
     public static Map<String, String> playlistsMap;
 
@@ -61,6 +68,7 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         getPlaylists();
+        refreshUI();
     }
 
     @OnClick(R.id.fab)
@@ -78,8 +86,8 @@ public class HomeActivity extends AppCompatActivity {
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         if (addPlaylist(dialog)) {
                             dialog.dismiss();
-                        }else{
-                            Utils.ToastOnUIThread(HomeActivity.this,"La playlist éxiste déjà. ");
+                        } else {
+                            Utils.ToastOnUIThread(HomeActivity.this, "La playlist éxiste déjà. ");
                         }
                     }
                 })
@@ -150,7 +158,7 @@ public class HomeActivity extends AppCompatActivity {
             for (Map.Entry<String, String> entry : playlistsMap.entrySet()) {
                 if (entry.getKey().equals(urlET.getText().toString().trim())) return false;
             }
-            playlistsMap.put(urlET.getText().toString().trim(),nameET.getText().toString().trim());
+            playlistsMap.put(urlET.getText().toString().trim(), nameET.getText().toString().trim());
             savePlaylists();
             refreshUI();
             return true;
@@ -161,14 +169,32 @@ public class HomeActivity extends AppCompatActivity {
 
     private void refreshUI() {
         //TODO
+        homeContainer.removeAllViews();
+
+        for (final Map.Entry<String, String> entry : playlistsMap.entrySet()) {
+
+            Button btn = new Button(this);
+            btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            btn.setText(entry.getValue());
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(HomeActivity.this, DownloadActivity.class);
+                    i.putExtra("url", entry.getKey());
+                    startActivity(i);
+                }
+            });
+            homeContainer.addView(btn);
+        }
+
     }
 
-    @OnClick(R.id.temp)
-    void startDownload() {
-        Intent i = new Intent(this, DownloadActivity.class);
-        i.putExtra("url", getResources().getString(R.string.sample_playlist));
-        startActivity(i);
-    }
+//    @OnClick(R.id.temp)
+//    void startDownload() {
+//        Intent i = new Intent(this, DownloadActivity.class);
+//        i.putExtra("url", getResources().getString(R.string.sample_playlist));
+//        startActivity(i);
+//    }
 
     public boolean savePlaylists() {
         //TODO
