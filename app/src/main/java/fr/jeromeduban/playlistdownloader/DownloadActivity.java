@@ -48,6 +48,7 @@ import static fr.jeromeduban.playlistdownloader.Utils.generateUrlVideoID;
 import static fr.jeromeduban.playlistdownloader.Utils.parsePlaylist;
 
 //TODO Store asynctasks in list to cancel them when user press back !!!!!
+//TODO Add a way to select a folder to download the playlist ??
 
 public class DownloadActivity extends AppCompatActivity {
 

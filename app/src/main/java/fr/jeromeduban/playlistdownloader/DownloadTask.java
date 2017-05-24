@@ -74,7 +74,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
             if (fileLength == -1 || retry < 0){
                 return false;
             }
-
+            // TODO change path according to playlist name
             f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", name + ".mp3");
             boolean result = f.getParentFile().mkdirs(); //TODO Use result
             LogHelper.i(id +">File Created");
