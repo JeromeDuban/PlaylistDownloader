@@ -8,6 +8,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,10 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +34,14 @@ import butterknife.OnClick;
 
 public class HomeActivity extends AppCompatActivity {
 
+
     @BindView(R.id.home_container)
     LinearLayout homeContainer;
 
-    public static Map<String, String> playlistsMap;
+    public static Map<String, String> playlistsMap = new HashMap<>();
+    private static final String PREF_LIST = "PREF_LIST";
+    Moshi moshi = new Moshi.Builder().build();
+    JsonAdapter<Map> jsonAdapter = moshi.adapter(Map.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,7 +176,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void refreshUI() {
-        //TODO
         homeContainer.removeAllViews();
 
         for (final Map.Entry<String, String> entry : playlistsMap.entrySet()) {
@@ -197,18 +204,35 @@ public class HomeActivity extends AppCompatActivity {
 //    }
 
     public boolean savePlaylists() {
-        //TODO
-        return true;
+
+        try {
+            String json = jsonAdapter.toJson(playlistsMap);
+            SharedPreferenceHelper.setSharedPreferenceString(HomeActivity.this, PREF_LIST, json);
+            return true;
+        } catch (IOException e) {
+            LogHelper.e(e.getMessage(), e);
+            Utils.ToastOnUIThread(HomeActivity.this, "Une erreur est survenue lors de l'enregistrement des playlists");
+        }
+        return false;
     }
 
     public Map<String, String> getPlaylists() {
-        //TODO
 
-        playlistsMap = new HashMap<>();
-        playlistsMap.put("https://www.youtube.com/watch?v=CDrCGZVe5zM&list=RDCDrCGZVe5zM", "Mix chill");
-        playlistsMap.put("https://www.youtube.com/playlist?list=PLTMG0ZyH_DfBFPJA0dLWijvzbONcg9Tkg", "Nazes old");
+        String json = SharedPreferenceHelper.getSharedPreferenceString(HomeActivity.this, PREF_LIST, "");
+        if (!TextUtils.isEmpty(json)) {
+            try {
+                Map<String, String> temp = jsonAdapter.fromJson(json);
+                if (temp != null){
+                    playlistsMap = temp;
+                }
 
-        return playlistsMap;
+                return playlistsMap;
+            } catch (IOException e) {
+                LogHelper.e(e.getMessage(), e);
+                Utils.ToastOnUIThread(HomeActivity.this, "Une erreur est survenue lors de la récupération des playlists");
+            }
+        }
+        return null;
     }
 
 }
