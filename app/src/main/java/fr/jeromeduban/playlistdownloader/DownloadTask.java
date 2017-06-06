@@ -27,15 +27,17 @@ import java.net.URL;
 
 public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
 
+    private final String playlistName;
     private Context context;
     private ProgressBar mProgressBar;
     private PowerManager.WakeLock mWakeLock;
     private File f;
     private int retry = 5;
 
-    public DownloadTask(Context context, View view) {
+    public DownloadTask(Context context, View view, String playlistName) {
         this.mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
         this.context = context;
+        this.playlistName = playlistName;
     }
 
     @Override
@@ -47,37 +49,37 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         String name = params[1];
 
         try {
-            LogHelper.i(id +">Downloading file");
+            LogHelper.i(id + ">Downloading file");
 
             URL url = new URL("http://www.youtubeinmp3.com/fetch/?video=https://www.youtube.com/watch?v=" + id); //TODO Extract base url
 
             int fileLength = -1;
-            while (fileLength == -1 && retry >= 0){
-                LogHelper.i(id +">Connecting, Retry=" + String.valueOf(retry));
+            while (fileLength == -1 && retry >= 0) {
+                LogHelper.i(id + ">Connecting, Retry=" + String.valueOf(retry));
                 connection = (HttpURLConnection) url.openConnection();
-                connection.setReadTimeout(10*1000);
+                connection.setReadTimeout(10 * 1000);
                 connection.connect();
 
                 // expect HTTP 200 OK, so we don't mistakenly save error report
                 // instead of the file
                 if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    LogHelper.e(id +">Code :" + connection.getResponseCode());
+                    LogHelper.e(id + ">Code :" + connection.getResponseCode());
                     return false;
                 }
 
                 // this will be useful to display download percentage
                 // might be -1: server did not report the length
                 fileLength = connection.getContentLength();
-                LogHelper.i(id +">File length :" + String.valueOf(fileLength));
+                LogHelper.i(id + ">File length :" + String.valueOf(fileLength));
                 retry--;
             }
-            if (fileLength == -1 || retry < 0){
+            if (fileLength == -1 || retry < 0) {
                 return false;
             }
             // TODO change path according to playlist name
-            f = new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", name + ".mp3");
+            f = new File(Environment.getExternalStorageDirectory().getPath() + "/Music/" + playlistName, name + ".mp3");
             boolean result = f.getParentFile().mkdirs(); //TODO Use result
-            LogHelper.i(id +">File Created");
+            LogHelper.i(id + ">File Created");
 
             // download the file
             input = connection.getInputStream();
@@ -98,7 +100,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
                     publishProgress((int) (total * 100 / fileLength));
                 output.write(data, 0, count);
             }
-            LogHelper.i(id +">File downloaded");
+            LogHelper.i(id + ">File downloaded");
 
         } catch (Exception e) {
             LogHelper.e(e.getMessage(), e);
@@ -138,10 +140,10 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
         mProgressBar.setMax(100);
         mProgressBar.setProgress(progress[0]);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mProgressBar.setProgressTintList(ContextCompat.getColorStateList(context,R.color.md_blue_400));
-        }else{
+            mProgressBar.setProgressTintList(ContextCompat.getColorStateList(context, R.color.md_blue_400));
+        } else {
             mProgressBar.getProgressDrawable().setColorFilter(
-                    ContextCompat.getColor(context,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
+                    ContextCompat.getColor(context, R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
         }
     }
 
@@ -155,7 +157,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Boolean> {
             mProgressBar.setProgress(100);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mProgressBar.setProgressTintList(ColorStateList.valueOf(Color.RED));
-            }else{
+            } else {
                 mProgressBar.getProgressDrawable().setColorFilter(
                         Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
             }

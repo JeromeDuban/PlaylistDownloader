@@ -67,6 +67,7 @@ public class DownloadActivity extends AppCompatActivity {
     Button downloadAll;
 
     private ArrayList<Playlist> list = new ArrayList<>();
+    private String playlistName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +98,7 @@ public class DownloadActivity extends AppCompatActivity {
 
         Utils.checkPermission(this);
         getPlaylist(getIntent().getStringExtra("url"));
+        playlistName = getIntent().getStringExtra("name");
     }
 
 
@@ -293,7 +295,7 @@ public class DownloadActivity extends AppCompatActivity {
             pb.getProgressDrawable().setColorFilter(
                     ContextCompat.getColor(DownloadActivity.this,R.color.md_blue_400), android.graphics.PorterDuff.Mode.SRC_IN);
         }
-        if (new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
+        if (new File(Environment.getExternalStorageDirectory().getPath() + "/Music/"+playlistName, title + ".mp3").exists()){
             pb.setVisibility(View.VISIBLE);
             pb.setProgress(100);
         }else{
@@ -326,8 +328,8 @@ public class DownloadActivity extends AppCompatActivity {
             TextView videoNameTV = (TextView) v.findViewById(R.id.video_name);
             String title = videoNameTV.getText().toString().trim();
 
-            if (!new File(Environment.getExternalStorageDirectory().getPath() + "/PlaylistDownloader", title + ".mp3").exists()){
-                final DownloadTask downloadTask = new DownloadTask(DownloadActivity.this, v);
+            if (!new File(Environment.getExternalStorageDirectory().getPath() + "/Music/"+playlistName, title + ".mp3").exists()){
+                final DownloadTask downloadTask = new DownloadTask(DownloadActivity.this, v, playlistName);
                 Item item = (Item)v.getTag();
                 downloadTask.execute(item.id,title);
             }

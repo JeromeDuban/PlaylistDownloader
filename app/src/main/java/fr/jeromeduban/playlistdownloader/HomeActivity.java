@@ -202,6 +202,7 @@ public class HomeActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent i = new Intent(HomeActivity.this, DownloadActivity.class);
                     i.putExtra("url", entry.getKey());
+                    i.putExtra("name", entry.getValue());
                     startActivity(i);
                 }
             });
@@ -226,13 +227,6 @@ public class HomeActivity extends AppCompatActivity {
 
 
     }
-
-//    @OnClick(R.id.temp)
-//    void startDownload() {
-//        Intent i = new Intent(this, DownloadActivity.class);
-//        i.putExtra("url", getResources().getString(R.string.sample_playlist));
-//        startActivity(i);
-//    }
 
     public boolean savePlaylists() {
 
