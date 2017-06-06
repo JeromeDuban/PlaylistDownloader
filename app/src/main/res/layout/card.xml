@@ -9,55 +9,58 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary">
 
         <ImageView
             android:id="@+id/thumbnail"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:src="@android:drawable/ic_menu_gallery"
+            android:contentDescription="Thumbnail"
             android:scaleType="centerCrop"
-            android:contentDescription="Thumbnail"/>
+            android:src="@android:drawable/ic_menu_gallery" />
 
         <TextView
             android:id="@+id/video.name"
             android:layout_width="match_parent"
             android:layout_height="18dp"
-            android:layout_toRightOf="@+id/thumbnail"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:gravity="center_vertical"
-            android:layout_marginTop="@dimen/magic_margin"
             android:layout_marginLeft="@dimen/magic_margin"
             android:layout_marginStart="@dimen/magic_margin"
-            android:textStyle="bold"
-            android:text="@string/interrogation_mark" />
+            android:layout_marginTop="@dimen/magic_margin"
+            android:layout_toEndOf="@+id/thumbnail"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:gravity="center_vertical"
+            android:text="@string/interrogation_mark"
+            android:textColor="@color/md_white_1000"
+            android:textStyle="bold" />
 
         <TextView
-            android:layout_below="@+id/video.name"
             android:id="@+id/song.title"
             android:layout_width="match_parent"
             android:layout_height="18dp"
-            android:layout_toRightOf="@+id/thumbnail"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:gravity="center_vertical"
+            android:layout_below="@+id/video.name"
             android:layout_marginLeft="@dimen/magic_margin"
             android:layout_marginStart="@dimen/magic_margin"
-            android:text="@string/interrogation_mark" />
+            android:layout_toEndOf="@+id/thumbnail"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:gravity="center_vertical"
+            android:text="@string/interrogation_mark"
+            android:textColor="@color/md_white_1000" />
 
         <TextView
-            android:layout_below="@+id/song.title"
             android:id="@+id/song.artist"
             android:layout_width="match_parent"
             android:layout_height="18dp"
-            android:layout_toRightOf="@+id/thumbnail"
-            android:layout_toEndOf="@+id/thumbnail"
-            android:gravity="center_vertical"
+            android:layout_below="@+id/song.title"
             android:layout_marginLeft="@dimen/magic_margin"
             android:layout_marginStart="@dimen/magic_margin"
-            android:text="@string/interrogation_mark" />
+            android:layout_toEndOf="@+id/thumbnail"
+            android:layout_toRightOf="@+id/thumbnail"
+            android:gravity="center_vertical"
+            android:text="@string/interrogation_mark"
+            android:textColor="@color/md_white_1000" />
 
         <ProgressBar
-            android:progressTint="@android:color/holo_blue_dark"
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
@@ -67,7 +70,9 @@
             android:layout_alignStart="@+id/video.name"
             android:layout_marginBottom="@dimen/magic_margin"
             android:layout_marginEnd="@dimen/magic_margin"
-            android:layout_marginRight="@dimen/magic_margin"/>
+            android:layout_marginRight="@dimen/magic_margin"
+            android:progressTint="@android:color/holo_blue_dark"
+            android:textColor="@color/md_white_1000" />
 
 
     </RelativeLayout>

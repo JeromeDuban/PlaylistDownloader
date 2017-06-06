@@ -1,6 +1,8 @@
 package fr.jeromeduban.playlistdownloader;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,16 +12,17 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.amulyakhare.textdrawable.TextDrawable;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 
@@ -50,6 +53,7 @@ public class HomeActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        overridePendingTransition(R.anim.slide_left_in, R.anim.slide_left_out);
 
         Utils.checkPermission(this);
 
@@ -180,10 +184,20 @@ public class HomeActivity extends AppCompatActivity {
 
         for (final Map.Entry<String, String> entry : playlistsMap.entrySet()) {
 
-            Button btn = new Button(this);
-            btn.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            btn.setText(entry.getValue());
-            btn.setOnClickListener(new View.OnClickListener() {
+            LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final View card = in.inflate(R.layout.list_item, homeContainer, false);
+
+            card.setTag(entry.getKey());
+
+            ImageView icon = (ImageView) card.findViewById(R.id.thumbnail);
+            TextDrawable drawable = TextDrawable.builder()
+                    .buildRound(entry.getValue().substring(0, 1), Color.RED);
+            icon.setImageDrawable(drawable);
+
+            final TextView videoNameTV = (TextView) card.findViewById(R.id.video_name);
+            videoNameTV.setText(entry.getValue());
+
+            card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(HomeActivity.this, DownloadActivity.class);
@@ -191,8 +205,25 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(i);
                 }
             });
-            homeContainer.addView(btn);
+
+            card.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    String url = String.valueOf(card.getTag());
+                    if (playlistsMap.containsKey(url)){
+                        playlistsMap.remove(url);
+                        Utils.ToastOnUIThread(HomeActivity.this,"Playlist " + videoNameTV.getText().toString().trim() + "supprimée.");
+                        savePlaylists();
+                        refreshUI();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+            homeContainer.addView(card);
         }
+
 
     }
 
@@ -222,7 +253,7 @@ public class HomeActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(json)) {
             try {
                 Map<String, String> temp = jsonAdapter.fromJson(json);
-                if (temp != null){
+                if (temp != null) {
                     playlistsMap = temp;
                 }
 

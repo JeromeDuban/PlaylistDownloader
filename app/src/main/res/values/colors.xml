@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/md_blue_400</color>
+    <color name="colorPrimary">#3C4647</color>
+    <color name="colorPrimaryDark">#3C4647</color>
+    <color name="colorAccent">@color/md_blue_600</color>
+    <color name="color_background">#2C3534</color>
 </resources>
