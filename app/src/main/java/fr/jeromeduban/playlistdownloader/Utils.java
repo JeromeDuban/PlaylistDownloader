@@ -26,7 +26,10 @@ import fr.jeromeduban.playlistdownloader.objects.Playlist;
  */
 
 class Utils {
-    protected static final int WRITE_PERMISSION = 100;
+
+    static final int WRITE_PERMISSION = 100;
+
+    static final String[] COLOR_LIST = new String[]{"#d96c6c", "#e55c00", "#a66c29", "#403300", "#4c5916", "#008033", "#264d4a", "#00294d", "#003d99", "#534d66", "#602080", "#b35995", "#591631", "#664d50", "#ff2200", "#f2ceb6", "#736556", "#b2a159", "#19bf00", "#134d2a", "#39dae6", "#307cbf", "#7b6cd9", "#6100f2", "#352040", "#ff0088"};
 
 
     static void ToastOnUIThread(final Activity a, final String message){
@@ -126,5 +129,16 @@ class Utils {
         }
 
         return containedUrls;
+    }
+
+    public static int getPositionInAlphabet(String string) {
+
+        string = string.toLowerCase();
+
+        int temp = (int) string.charAt(0);
+        if (temp <= 122 & temp >= 97) {
+            return temp - 96;
+        }
+        return -1;
     }
 }

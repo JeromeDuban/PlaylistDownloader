@@ -187,22 +187,27 @@ public class HomeActivity extends AppCompatActivity {
             LayoutInflater in = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             final View card = in.inflate(R.layout.list_item, homeContainer, false);
 
-            card.setTag(entry.getKey());
+            final String playlistUrl = entry.getKey();
+            final String playlistName = entry.getValue();
+
+            card.setTag(playlistUrl);
+
 
             ImageView icon = (ImageView) card.findViewById(R.id.thumbnail);
             TextDrawable drawable = TextDrawable.builder()
-                    .buildRound(entry.getValue().substring(0, 1), Color.RED);
+                    .buildRound(playlistName.substring(0, 1),
+                            Color.parseColor(Utils.COLOR_LIST[Utils.getPositionInAlphabet(playlistName)-1]));
             icon.setImageDrawable(drawable);
 
             final TextView videoNameTV = (TextView) card.findViewById(R.id.video_name);
-            videoNameTV.setText(entry.getValue());
+            videoNameTV.setText(playlistName);
 
             card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(HomeActivity.this, DownloadActivity.class);
-                    i.putExtra("url", entry.getKey());
-                    i.putExtra("name", entry.getValue());
+                    i.putExtra("url", playlistUrl);
+                    i.putExtra("name", playlistName);
                     startActivity(i);
                 }
             });
@@ -211,22 +216,22 @@ public class HomeActivity extends AppCompatActivity {
                 @Override
                 public boolean onLongClick(View view) {
                     String url = String.valueOf(card.getTag());
-                    if (playlistsMap.containsKey(url)){
+                    if (playlistsMap.containsKey(url)) {
                         playlistsMap.remove(url);
-                        Utils.ToastOnUIThread(HomeActivity.this,"Playlist " + videoNameTV.getText().toString().trim() + "supprimée.");
+                        Utils.ToastOnUIThread(HomeActivity.this, "Playlist " + videoNameTV.getText().toString().trim() + "supprimée.");
                         savePlaylists();
                         refreshUI();
                         return true;
                     }
                     return false;
+
                 }
             });
 
             homeContainer.addView(card);
         }
-
-
     }
+
 
     public boolean savePlaylists() {
 
